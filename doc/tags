@@ -1,0 +1,3 @@
+Settings	nvim-dap-vscode-js.txt	/*Settings*
+dap-vscode-js	nvim-dap-vscode-js.txt	/*dap-vscode-js*
+dapjs.setup()	nvim-dap-vscode-js.txt	/*dapjs.setup()*
