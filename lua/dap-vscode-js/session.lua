@@ -158,9 +158,9 @@ function M.setup_hooks(plugin_id, config)
 		for i, bp in ipairs(body.breakpoints) do
 			table.insert(session_bps, bp)
 
-      if not config.verify_timeout then
-        return
-      end
+			if not config.verify_timeout then
+				return
+			end
 
 			if not bp.verified then
 				bp.verified = true
@@ -175,7 +175,9 @@ function M.setup_hooks(plugin_id, config)
 
 						local bp_info = utils.dap_breakpoint_by_state(bp)
 
-						breakpoints.set_state(bp_info.bufnr, bp_info.line, bp)
+						if bp_info then
+							breakpoints.set_state(bp_info.bufnr, bp_info.line, bp)
+						end
 
 						if bp.message then
 							dap_utils.notify("Breakpoint rejected: " .. bp.message, vim.log.levels.ERROR)
@@ -197,7 +199,7 @@ function M.setup_hooks(plugin_id, config)
 			for _, xbp in ipairs(session_breakpoints(session) or {}) do
 				if xbp.id == bp.id then
 					xbp.__verified = bp.verified
-          xbp.verified = bp.verified
+					xbp.verified = bp.verified
 				end
 			end
 		end
