@@ -3,8 +3,9 @@ local uv = vim.loop
 local js_session = require("dap-vscode-js.session")
 local utils = require("dap-vscode-js.utils")
 local logger = require("dap-vscode-js.log")
+local dapjs_config = require("dap-vscode-js.config")
 
-local function gen_cwd(user_config, config)
+function M.__gen_cwd(user_config, config)
 	if not user_config.cwd then
 		if config.cwd then
 			return config.cwd
@@ -22,13 +23,13 @@ end
 
 local function generate_config_enricher(user_config)
 	return function(config, on_config)
-		config.cwd = gen_cwd(user_config, config)
+		config.cwd = M.__gen_cwd(user_config, config)
 
 		on_config(config)
 	end
 end
 
-local function start_child_session(request, proc, config)
+local function start_child_session(request, proc, config, root_port)
 	local body = request.arguments
 	local session = nil
 	local child_port = tonumber(body.config.__jsDebugChildServer)
@@ -38,7 +39,7 @@ local function start_child_session(request, proc, config)
 			logger.log("DAP connection failed to start: " .. err, vim.log.levels.ERROR)
 		else
 			session:initialize(body.config)
-			js_session.register_session(session, proc, child_port)
+			js_session.register_session(session, proc, child_port, root_port)
 		end
 	end)
 end
@@ -51,13 +52,15 @@ local function adapter_config(port, proc, user_config)
 		enrich_config = generate_config_enricher(user_config),
 		reverse_request_handlers = {
 			attachedChildSession = function(_, request)
-				start_child_session(request, proc, user_config)
+				start_child_session(request, proc, user_config, port)
 			end,
 		},
 	}
 end
 
-function M.generate_adapter(config, mode)
+function M.generate_adapter(mode, config)
+	config = config or dapjs_config
+
 	return function(callback)
 		local proc
 

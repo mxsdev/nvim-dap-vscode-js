@@ -1,13 +1,9 @@
 #!/bin/bash
 
-LIB_PLENARY_DIR="./lib/plenary.nvim"
-LIB_PLENARY_URL="https://github.com/nvim-lua/plenary.nvim"
+source ./scripts/utils
 
-LIB_TS_DIR="./lib/tree-sitter-lua"
-LIB_TS_URL="https://github.com/tjdevries/tree-sitter-lua"
-
-if [ -d $LIB_PLENARY_DIR ]; then git -C $LIB_PLENARY_DIR pull; else git clone --depth 1 $LIB_PLENARY_URL $LIB_PLENARY_DIR; fi
-if [ -d $LIB_TS_DIR ]; then git -C $LIB_TS_DIR pull; else git clone --depth 1 $LIB_TS_URL $LIB_TS_DIR; fi
+__install_lib "nvim-lua" "plenary.nvim"
+__install_lib "tjdevries" "tree-sitter-lua"
 
 (cd ./lib/tree-sitter-lua && make build_parser)
 

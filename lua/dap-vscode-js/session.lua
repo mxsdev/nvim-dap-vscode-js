@@ -8,26 +8,34 @@ local sessions = {}
 
 local function get_proc_sessions(pid)
 	return vim.tbl_filter(function(session_data)
-		return session_data.handle and session_data.pid == pid
+		return session_data.proc and (session_data.proc.handle and session_data.proc.pid == pid)
 	end, sessions)
 end
 
-function M.register_session(session, root_proc, port)
-	if vim.tbl_count(get_proc_sessions(root_proc.pid)) == 0 then
+local function get_session_by_root_session(session)
+	return vim.tbl_filter(function(session_data)
+		return session_data.port == session.adapter.port
+	end, sessions)
+end
+
+function M.register_session(session, root_proc, port, root_port)
+	if root_proc and vim.tbl_count(get_proc_sessions(root_proc.pid)) == 0 then
 		dap.set_session(session)
 	end
 
 	sessions[session] = {
 		proc = root_proc,
 		port = port,
-		is_main = (vim.tbl_count(get_proc_sessions(root_proc.pid)) == 0),
+		-- root_port = root_port,
+		is_root = port == root_port,
+		is_main = (root_proc and vim.tbl_count(get_proc_sessions(root_proc.pid)) == 0),
 	}
 end
 
 function M.unregister_session(session)
 	sessions[session] = nil
 
-	-- should exit process here ???
+	-- should exit process here ??
 end
 
 function M.unregister_proc(proc)
@@ -79,7 +87,13 @@ local function session_breakpoints(session)
 	return session_entry(session, "breakpoints")
 end
 
-function M.setup_hooks(plugin_id)
+function M.setup_hooks(plugin_id, config)
+	dap.listeners.before["event_initialized"]["plugin_id"] = function(session, body)
+		if #get_session_by_root_session(session) == 0 then
+			M.register_session(session, nil, session.adapter.port, session.adapter.port)
+		end
+	end
+
 	local function set_variable_listener(session, err, body, request)
 		if err then
 			return
@@ -127,6 +141,14 @@ function M.setup_hooks(plugin_id)
 			return
 		end
 
+		if sessions[session] and sessions[session].is_root then
+			for _, bp in ipairs(body.breakpoints) do
+				bp.verified = true
+			end
+
+			return
+		end
+
 		local session_bps = session_breakpoints(session)
 
 		if not session_bps then
@@ -138,11 +160,13 @@ function M.setup_hooks(plugin_id)
 
 			if not bp.verified then
 				bp.verified = true
+				bp.__verified = false
 				local old_message = bp.message
 				bp.message = nil
 
 				vim.defer_fn(function()
-					if not bp.verified then
+					if not bp.__verified then
+						bp.verified = false
 						bp.message = old_message
 
 						local bp_info = utils.dap_breakpoint_by_state(bp)
@@ -150,10 +174,10 @@ function M.setup_hooks(plugin_id)
 						breakpoints.set_state(bp_info.bufnr, bp_info.line, bp)
 
 						if bp.message then
-							dap_utils.notify("Breakpoint rejected: " .. bp.message)
+							dap_utils.notify("Breakpoint rejected: " .. bp.message, vim.log.levels.ERROR)
 						end
 					end
-				end, 50)
+				end, config.verify_timeout)
 			end
 		end
 	end
@@ -168,7 +192,9 @@ function M.setup_hooks(plugin_id)
 		if bp.id then
 			for _, xbp in ipairs(session_breakpoints(session) or {}) do
 				if xbp.id == bp.id then
-					bp.verified = xbp.verified
+					-- xbp.__verified = bp.verified
+					xbp.__verified = bp.verified
+					--      bp.__verified = xbp.verified
 				end
 			end
 		end

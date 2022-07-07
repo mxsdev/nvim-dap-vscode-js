@@ -1,0 +1,7 @@
+#!/bin/bash
+
+__install_lib () {
+  local _lib_folder="./lib/$2"
+  local _github_url="https://github.com/$1/$2"
+  if [ -d $_lib_folder ]; then git -C $_lib_folder pull; else git clone --depth 1 $_github_url $_lib_folder; fi
+}

@@ -14,7 +14,7 @@ function M.attach_adapters(config)
 	local adapter_list = filter_adapters(config.adapters or DAP_TYPES)
 
 	for _, adapter in ipairs(adapter_list) do
-		dap.adapters[adapter] = js_adapter.generate_adapter(config, adapter)
+		dap.adapters[adapter] = js_adapter.generate_adapter(adapter, config)
 	end
 end
 

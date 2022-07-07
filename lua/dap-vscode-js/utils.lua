@@ -77,8 +77,6 @@ function M.start_debugger(config, on_launch, on_exit, on_error, on_stderror)
 		on_exit(code, signal)
 	end
 
-	print(config.debugger_path)
-
 	handle, pid_or_err = uv.spawn(config.node_path, {
 		args = {
 			entrypoint,
