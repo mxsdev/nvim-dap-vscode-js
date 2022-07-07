@@ -99,5 +99,39 @@ describe("pwa-node", function()
 				dap.run(launch_config)
 			end, 1)
 		)
+
+    async.it(
+      "will reject breakpoints if verify_timeout unset",
+      wrap(function(done)
+        test_utils.open_test("test1.ts")
+
+				test_utils.set_breakpoint(3, 0)
+
+        dapjs.setup({
+         verify_timeout = false
+        }, false)
+
+
+				test_utils.add_listener("after", "event_stopped", function(session, body)
+          vim.defer_fn(function()
+            dap.continue()
+          end, 10)
+        end)
+
+        test_utils.add_listener("after", "event_terminated", function(session, body)
+          local bp_signs = test_utils.get_breakpoint_signs(0)
+
+          for _, bp in ipairs(bp_signs) do
+            for _, sign in ipairs(bp.signs) do
+              assert.equal(sign.name, "DapBreakpointRejected")
+            end
+          end
+
+          done()
+        end)
+
+        dap.run(launch_config)
+      end, 1)
+    )
 	end)
 end)

@@ -158,6 +158,10 @@ function M.setup_hooks(plugin_id, config)
 		for i, bp in ipairs(body.breakpoints) do
 			table.insert(session_bps, bp)
 
+      if not config.verify_timeout then
+        return
+      end
+
 			if not bp.verified then
 				bp.verified = true
 				bp.__verified = false
@@ -192,9 +196,8 @@ function M.setup_hooks(plugin_id, config)
 		if bp.id then
 			for _, xbp in ipairs(session_breakpoints(session) or {}) do
 				if xbp.id == bp.id then
-					-- xbp.__verified = bp.verified
 					xbp.__verified = bp.verified
-					--      bp.__verified = xbp.verified
+          xbp.verified = bp.verified
 				end
 			end
 		end
