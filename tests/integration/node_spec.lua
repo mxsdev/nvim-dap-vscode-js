@@ -11,6 +11,7 @@ local launch_config = {
 	request = "launch",
 	name = "Launch file",
 	program = "${file}",
+  cwd = "${workspaceFolder}",
 }
 
 local current_session
@@ -77,8 +78,6 @@ describe("pwa-node", function()
 						local bps = breakpoints.get(bufexpr)[bufexpr]
 
 						assert.equal(#bps, 1)
-						assert.truthy(bps[1].state.__verified)
-						assert.equal(bps[1].state.__verified, bps[1].state.verified)
 
 						local bp_signs = test_utils.get_breakpoint_signs(bufexpr)
 
@@ -89,43 +88,10 @@ describe("pwa-node", function()
 						end
 
 						dap.continue()
-					end, config.verify_timeout + 1)
-				end)
-
-				test_utils.add_listener("after", "event_terminated", function(session, body)
-					done()
-				end)
-
-				dap.run(launch_config)
-			end, 1)
-		)
-
-		async.it(
-			"will reject breakpoints if verify_timeout unset",
-			wrap(function(done)
-				test_utils.open_test("test1.ts")
-
-				test_utils.set_breakpoint(3, 0)
-
-				dapjs.setup({
-					verify_timeout = false,
-				}, false)
-
-				test_utils.add_listener("after", "event_stopped", function(session, body)
-					vim.defer_fn(function()
-						dap.continue()
 					end, 10)
 				end)
 
 				test_utils.add_listener("after", "event_terminated", function(session, body)
-					local bp_signs = test_utils.get_breakpoint_signs(0)
-
-					for _, bp in ipairs(bp_signs) do
-						for _, sign in ipairs(bp.signs) do
-							assert.equal(sign.name, "DapBreakpointRejected")
-						end
-					end
-
 					done()
 				end)
 

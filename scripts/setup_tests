@@ -8,3 +8,4 @@ __install_lib "rcarriga" "nvim-dap-ui"
 __install_lib "microsoft" "vscode-js-debug" 
 
 (cd ./lib/vscode-js-debug && yarn install && yarn run compile)
+(cd ./tests/js/jest && yarn install)
