@@ -50,7 +50,7 @@ function M.unregister_session(session)
 end
 
 function M.is_session_registered(session)
-  return not not sessions[session]
+	return not not sessions[session]
 end
 
 local function get_breakpoints(pid)

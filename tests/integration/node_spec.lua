@@ -23,7 +23,6 @@ describe("pwa-node", function()
 	end)
 
 	describe("typescript", function()
-
 		async.it(
 			"can be debugged with simple config",
 			wrap(function(done)
@@ -54,7 +53,7 @@ describe("pwa-node", function()
 					try_exit()
 				end)
 
-        test_utils.on_session_end(function ()
+				test_utils.on_session_end(function()
 					termination_happened = true
 
 					try_exit()
@@ -75,32 +74,31 @@ describe("pwa-node", function()
 				test_utils.add_listener("after", "event_stopped", function(session, body)
 					assert.equal(body.reason, "breakpoint")
 
-          local bps = breakpoints.get(bufexpr)[bufexpr]
+					local bps = breakpoints.get(bufexpr)[bufexpr]
 
-          assert.equal(#bps, 1)
+					assert.equal(#bps, 1)
 
-          local bp_signs = test_utils.get_breakpoint_signs(bufexpr)
+					local bp_signs = test_utils.get_breakpoint_signs(bufexpr)
 
-          assert.equal(#bp_signs, 1)
+					assert.equal(#bp_signs, 1)
 
-          for _, bp in ipairs(bp_signs) do
-            assert.equal(#bp.signs, 1)
+					for _, bp in ipairs(bp_signs) do
+						assert.equal(#bp.signs, 1)
 
-            for _, sign in ipairs(bp.signs) do
-              assert.equal(sign.name, "DapBreakpoint")
-            end
-          end
+						for _, sign in ipairs(bp.signs) do
+							assert.equal(sign.name, "DapBreakpoint")
+						end
+					end
 
-          done()
+					done()
 				end)
 
-        test_utils.on_session_end(function ()
+				test_utils.on_session_end(function()
 					done()
 				end)
 
 				dap.run(launch_config)
 			end, 1)
 		)
-
 	end)
 end)

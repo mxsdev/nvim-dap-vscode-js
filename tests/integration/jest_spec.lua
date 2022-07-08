@@ -2,7 +2,7 @@ local breakpoints = require("dap.breakpoints")
 local async = require("plenary.async.tests")
 local wrap = require("plenary.async.async").wrap
 local dapjs = require("dap-vscode-js")
-local js_session = require"dap-vscode-js.session"
+local js_session = require("dap-vscode-js.session")
 local dap = require("dap")
 local test_utils = require("__dap_js_test_util")
 local config = require("dap-vscode-js.config")
@@ -35,23 +35,23 @@ describe("pwa-node jest", function()
 		async.it(
 			"receives stdout from terminal",
 			wrap(function(done)
-        local terminated = false
+				local terminated = false
 
-        local lines_found = {
-          ["Tests:       1 failed, 1 passed, 2 total"] = false,
-          ["Ran all test suites."] = false,
-          ["Waiting for the debugger to disconnect..."] = false,
-        }
+				local lines_found = {
+					["Tests:       1 failed, 1 passed, 2 total"] = false,
+					["Ran all test suites."] = false,
+					["Waiting for the debugger to disconnect..."] = false,
+				}
 
 				local function try_exit()
 					if terminated and vim.tbl_count(lines_found) == 0 then
-            done()
-          end
+						done()
+					end
 				end
 
 				test_utils.get_terminal_remote(function(lines)
 					for _, line in ipairs(lines) do
-            lines_found[line] = nil
+						lines_found[line] = nil
 					end
 
 					try_exit()
@@ -59,11 +59,11 @@ describe("pwa-node jest", function()
 
 				test_utils.open_test("jest/integration.test.ts")
 
-        test_utils.on_session_end(function ()
-          terminated = true
+				test_utils.on_session_end(function()
+					terminated = true
 
-          try_exit()
-        end)
+					try_exit()
+				end)
 
 				dap.run(launch_config)
 			end, 1)

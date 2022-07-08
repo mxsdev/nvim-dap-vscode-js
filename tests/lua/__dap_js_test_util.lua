@@ -12,7 +12,7 @@ M.id = "___dap_js_test"
 local util_id = "___dap_js_test_utils"
 
 -- local current_session
-local current_sessions = { }
+local current_sessions = {}
 
 function M.clear_listeners()
 	for _, time in ipairs({ "before", "after" }) do
@@ -34,7 +34,7 @@ function M.reset()
 	M.clear_listeners()
 	M.clear_config()
 	M.clear_breakpoints()
-  current_sessions = { }
+	current_sessions = {}
 end
 
 function M.set_breakpoint(lnum, bufnr, opts)
@@ -52,17 +52,17 @@ function M.add_listener(time, event_or_command, callback)
 end
 
 function M.on_session_end(callback)
-  M.add_listener('after', 'event_terminated', function (session, ...)
-    current_sessions[session] = nil
+	M.add_listener("after", "event_terminated", function(session, ...)
+		current_sessions[session] = nil
 
-    local active_sessions = vim.tbl_filter(function (el)
-      return js_session.is_session_registered(el)
-    end, vim.tbl_keys(current_sessions))
+		local active_sessions = vim.tbl_filter(function(el)
+			return js_session.is_session_registered(el)
+		end, vim.tbl_keys(current_sessions))
 
-    if #active_sessions == 0 then
-      callback(session, ...)
-    end
-  end)
+		if #active_sessions == 0 then
+			callback(session, ...)
+		end
+	end)
 end
 
 function M.setup_dapjs(config)
@@ -71,7 +71,7 @@ function M.setup_dapjs(config)
 	}, config or {}))
 
 	dap.listeners.before["event_initialized"][util_id] = function(session)
-    current_sessions[session] = true
+		current_sessions[session] = true
 	end
 end
 
