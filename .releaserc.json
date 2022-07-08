@@ -8,5 +8,8 @@
         "successComment": false
       }
     ]
+  ],
+  "branches": [
+    "main"
   ]
 }
