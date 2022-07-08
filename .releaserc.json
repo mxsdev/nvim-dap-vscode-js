@@ -3,11 +3,7 @@
     [
       "@semantic-release/commit-analyzer",
       {
-        "preset": "angular",
-        "releaseRules": [
-          {"type": "docs", "scope":"readme", "release": "patch"},
-          {"type": "docs", "scope":"nvim", "release": "patch"}
-        ]
+        "preset": "angular"
       }
     ],
     "@semantic-release/release-notes-generator",
