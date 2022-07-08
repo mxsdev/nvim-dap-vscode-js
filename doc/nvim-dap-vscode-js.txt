@@ -5,20 +5,16 @@ Settings                                                            *Settings*
     Plugin configuration options
 
     Fields: ~
-        {node_path}      (string)    Path of node executable. Defaults to
-                                     $NODE_PATH, and then "node"
-        {debugger_path}  (string)    Path to vscode-js-debug. Defaults to
-                                     (runtimedir)/site/pack/packer/opt/vscode-js-debug
-        {adapters}       (string[])  List of adapters to configure. Options
-                                     are 'pwa-node', 'pwa-chrome',
-                                     'pwa-msedge', 'node-terminal',
-                                     'pwa-extensionHost'. Defaults to all. See
-                                     https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md
-                                     for configuration options.
-        {verify_timeout} (number)    Timeout after which to fail breakpoints
-                                     if a verify event has not come through
-                                     from debugger. Set to false to disable
-                                     this feature.
+        {node_path}     (string)    Path of node executable. Defaults to
+                                    $NODE_PATH, and then "node"
+        {debugger_path} (string)    Path to vscode-js-debug. Defaults to
+                                    (runtimedir)/site/pack/packer/opt/vscode-js-debug
+        {adapters}      (string[])  List of adapters to configure. Options are
+                                    'pwa-node', 'pwa-chrome', 'pwa-msedge',
+                                    'node-terminal', 'pwa-extensionHost'.
+                                    Defaults to all. See
+                                    https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md
+                                    for configuration options.
 
 
 dapjs.setup({settings})                                        *dapjs.setup()*
