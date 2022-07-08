@@ -2,6 +2,7 @@ local breakpoints = require("dap.breakpoints")
 local async = require("plenary.async.tests")
 local wrap = require("plenary.async.async").wrap
 local dapjs = require("dap-vscode-js")
+local js_session = require"dap-vscode-js.session"
 local dap = require("dap")
 local test_utils = require("__dap_js_test_util")
 local config = require("dap-vscode-js.config")
@@ -12,7 +13,7 @@ local launch_config = {
 	type = "pwa-node",
 	request = "launch",
 	name = "Debug Jest Tests",
-	trace = true,
+	-- trace = true,
 	runtimeExecutable = "node",
 	runtimeArgs = {
 		"./node_modules/jest/bin/jest.js",
@@ -34,23 +35,23 @@ describe("pwa-node jest", function()
 		async.it(
 			"receives stdout from terminal",
 			wrap(function(done)
-				local term_lines = {}
+        local terminated = false
 
-				local terminated = false
-				local cleanup
+        local lines_found = {
+          ["Tests:       1 failed, 1 passed, 2 total"] = false,
+          ["Ran all test suites."] = false,
+          ["Waiting for the debugger to disconnect..."] = false,
+        }
 
 				local function try_exit()
-					if terminated and #term_lines == 98 then
-						assert.equal(term_lines[92], "Tests:       1 failed, 1 passed, 2 total")
-
-						cleanup()
-						done()
-					end
+					if terminated and vim.tbl_count(lines_found) == 0 then
+            done()
+          end
 				end
 
-				cleanup = test_utils.get_terminal_remote(function(lines)
+				test_utils.get_terminal_remote(function(lines)
 					for _, line in ipairs(lines) do
-						table.insert(term_lines, line)
+            lines_found[line] = nil
 					end
 
 					try_exit()
@@ -58,14 +59,11 @@ describe("pwa-node jest", function()
 
 				test_utils.open_test("jest/integration.test.ts")
 
-				test_utils.add_listener("before", "event_output", function(session, body)
-					print(body.output)
-				end)
+        test_utils.on_session_end(function ()
+          terminated = true
 
-				test_utils.add_listener("before", "event_terminated", function()
-					terminated = true
-					try_exit()
-				end)
+          try_exit()
+        end)
 
 				dap.run(launch_config)
 			end, 1)

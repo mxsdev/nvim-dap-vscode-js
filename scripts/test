@@ -1,9 +1,25 @@
 #!/bin/bash
 
+TIMEOUT=2000
+
+while getopts ":t:" options; do
+  case "${options}" in
+    t)
+      if [ -n "${OPTARG}" ]; then
+        TIMEOUT=${OPTARG}
+      fi
+      ;;
+  esac
+done
+
+export PLENARY_TEST_TIMEOUT=$TIMEOUT
+
+shift $(($OPTIND - 1))
+
 tempfile=".test_output.tmp"
 
 if [[ -n $1 ]]; then
-	nvim --headless --clean --noplugin -u tests/init.vim -c "PlenaryBustedFile $1 {sequential=true}" | tee "${tempfile}"
+	nvim --headless --clean --noplugin -u tests/init.vim -c "PlenaryBustedFile $1" | tee "${tempfile}"
 else
 	nvim --headless --clean --noplugin -u tests/init.vim -c "PlenaryBustedDirectory tests/ {minimal_init = 'tests/init.vim'}" | tee "${tempfile}"
 fi

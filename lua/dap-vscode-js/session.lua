@@ -49,6 +49,10 @@ function M.unregister_session(session)
 	sessions[session] = nil
 end
 
+function M.is_session_registered(session)
+  return not not sessions[session]
+end
+
 local function get_breakpoints(pid)
 	breakpoints[pid] = breakpoints[pid] or {}
 	return breakpoints[pid]
