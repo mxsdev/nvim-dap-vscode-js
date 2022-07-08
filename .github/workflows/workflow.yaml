@@ -28,6 +28,7 @@ jobs:
         with:
           node-version: 16
           cache: 'yarn'
+          cache-dependency-path: 'tests/js/jest/yarn.lock'
 
       - name: Prepare dependencies
         run: |
