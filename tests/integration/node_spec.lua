@@ -11,7 +11,7 @@ local launch_config = {
 	request = "launch",
 	name = "Launch file",
 	program = "${file}",
-  cwd = "${workspaceFolder}",
+	cwd = "${workspaceFolder}",
 }
 
 local current_session

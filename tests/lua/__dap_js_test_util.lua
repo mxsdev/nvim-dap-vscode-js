@@ -71,29 +71,29 @@ function M.get_breakpoint_signs(bufexpr)
 end
 
 function M.get_terminal_remote(on_update)
-  local old_val = dap.defaults.fallback.terminal_win_cmd
+	local old_val = dap.defaults.fallback.terminal_win_cmd
 
-  local term_buf = vim.api.nvim_create_buf(false, false)
+	local term_buf = vim.api.nvim_create_buf(false, false)
 
-  dap.defaults.fallback.terminal_win_cmd = function ()
-    return term_buf
-  end
+	dap.defaults.fallback.terminal_win_cmd = function()
+		return term_buf
+	end
 
-  vim.api.nvim_buf_attach(term_buf, false, {
-    on_lines = function (_, _, _, firstline, _, new_lastline)
-      local lines = vim.api.nvim_buf_get_lines(term_buf, firstline, new_lastline, true)
+	vim.api.nvim_buf_attach(term_buf, false, {
+		on_lines = function(_, _, _, firstline, _, new_lastline)
+			local lines = vim.api.nvim_buf_get_lines(term_buf, firstline, new_lastline, true)
 
-      on_update(lines)
-    end
-  })
+			on_update(lines)
+		end,
+	})
 
-  return function ()
-    dap.defaults.fallback.terminal_win_cmd = old_val
+	return function()
+		dap.defaults.fallback.terminal_win_cmd = old_val
 
-    vim.schedule(function ()
-      vim.api.nvim_buf_delete(term_buf, { force = true })
-    end)
-  end
+		vim.schedule(function()
+			vim.api.nvim_buf_delete(term_buf, { force = true })
+		end)
+	end
 end
 
 return M

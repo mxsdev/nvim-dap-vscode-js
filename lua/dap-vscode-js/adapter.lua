@@ -11,7 +11,7 @@ local function adapter_config(port, mode, proc, start_child)
 		type = "server",
 		host = "127.0.0.1",
 		port = port,
-    id = mode,
+		id = mode,
 		reverse_request_handlers = {
 			attachedChildSession = function(parent, request)
 				start_child(request, mode, parent, proc)
@@ -25,15 +25,19 @@ local function start_child_session(request, mode, parent, proc)
 	local session = nil
 	local child_port = tonumber(body.config.__jsDebugChildServer)
 
-	session = require("dap.session"):connect(adapter_config(child_port, mode, proc, start_child_session), {}, function(err)
-		if err then
-			logger.log("DAP connection failed to start: " .. err, vim.log.levels.ERROR)
-		else
-			session:initialize(body.config)
+	session = require("dap.session"):connect(
+		adapter_config(child_port, mode, proc, start_child_session),
+		{},
+		function(err)
+			if err then
+				logger.log("DAP connection failed to start: " .. err, vim.log.levels.ERROR)
+			else
+				session:initialize(body.config)
 
-      js_session.register_session(session, parent, proc)
+				js_session.register_session(session, parent, proc)
+			end
 		end
-	end)
+	)
 end
 
 function M.generate_adapter(mode, config)
@@ -43,7 +47,7 @@ function M.generate_adapter(mode, config)
 		local proc
 
 		proc = utils.start_debugger(config, function(port, proc)
-      js_session.register_port(port)
+			js_session.register_port(port)
 			callback(adapter_config(port, mode, proc, start_child_session))
 		end, function(code, signal)
 			if code and code ~= 0 then
