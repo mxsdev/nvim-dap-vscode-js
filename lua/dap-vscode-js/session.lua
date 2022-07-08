@@ -1,242 +1,153 @@
 local M = {}
 local utils = require("dap-vscode-js.utils")
-local breakpoints = require("dap.breakpoints")
+local dap_breakpoints = require("dap.breakpoints")
 local dap = require("dap")
 local dap_utils = require("dap.utils")
+local dap_bp_ns = 'dap_breakpoints'
 
 local sessions = {}
 
-local function get_proc_sessions(pid)
-	return vim.tbl_filter(function(session_data)
-		return session_data.proc and (session_data.proc.handle and session_data.proc.pid == pid)
-	end, sessions)
+local breakpoints = {}
+
+local root_ports = {}
+
+function M.register_port(port)
+  root_ports[port] = true
 end
 
-local function get_session_by_root_session(session)
-	return vim.tbl_filter(function(session_data)
-		return session_data.port == session.adapter.port
-	end, sessions)
+function M.unregister_port(port)
+  root_ports[port] = false
 end
 
-function M.register_session(session, root_proc, port, root_port)
-	if root_proc and vim.tbl_count(get_proc_sessions(root_proc.pid)) == 0 then
-		dap.set_session(session)
-	end
+function M.register_session(session, parent, proc)
+  dap.set_session(session)
 
 	sessions[session] = {
-		proc = root_proc,
-		port = port,
-		-- root_port = root_port,
-		is_root = port == root_port,
-		is_main = (root_proc and vim.tbl_count(get_proc_sessions(root_proc.pid)) == 0),
+    parent = parent,
+    pid = proc.pid,
+    exit = proc.exit,
 	}
 end
 
 function M.unregister_session(session)
-	sessions[session] = nil
+  local session_info = sessions[session]
 
-	-- should exit process here ??
+  if not session_info then
+    return
+  end
+
+  if #vim.tbl_filter(function (data)
+    return data.pid == session_info.pid
+  end, sessions) <= 1 then
+    session_info.exit()
+  end
+
+  if session_info.parent and sessions[session_info.parent] then
+    dap.set_session(session_info.parent)
+  end
+
+  sessions[session] = nil
 end
 
-function M.unregister_proc(proc)
-	for session, _ in pairs(get_proc_sessions(proc.pid)) do
-		M.unregister_session(session)
-	end
+local function get_breakpoints(pid)
+  breakpoints[pid] = breakpoints[pid] or { }
+  return breakpoints[pid]
 end
 
-local function session_proc(session)
-	if not sessions[session] then
-		return nil
-	end
+local function register_listener(time, key, plugin_id, func)
+  dap.listeners[time][key][plugin_id] = function(session, ...)
+    if not sessions[session] then
+      return
+    end
 
-	return sessions[session].proc
-end
-
-local function session_is_main(session)
-	if not sessions[session] then
-		return nil
-	end
-
-	return sessions[session].is_main
-end
-
-local function session_entry(session, entry)
-	if not sessions[session] then
-		-- sessions[session] = { }
-		return nil
-	end
-
-	if not sessions[session][entry] then
-		sessions[session][entry] = {}
-	end
-
-	return sessions[session][entry]
-end
-
-local function session_variables(session)
-	return session_entry(session, "variables")
-end
-
-local function clear_session_variables(session)
-	if sessions[session] then
-		sessions[session]["variables"] = nil
-	end
-end
-
-local function session_breakpoints(session)
-	return session_entry(session, "breakpoints")
+    func(session, sessions[session], ...)
+  end
 end
 
 function M.setup_hooks(plugin_id, config)
-	dap.listeners.before["event_initialized"]["plugin_id"] = function(session, body)
-		if #get_session_by_root_session(session) == 0 then
-			M.register_session(session, nil, session.adapter.port, session.adapter.port)
-		end
-	end
+  for _, evt in ipairs({ 'event_terminated', 'event_exited' }) do
+    register_listener('after', evt, plugin_id, function (session)
+      M.unregister_session(session)
+      M.unregister_port(session.adapter.port)
+    end)
+  end
 
-	local function set_variable_listener(session, err, body, request)
-		if err then
-			return
-		end
+  dap.listeners.before['setBreakpoints'][plugin_id .. '-root'] = function (session, err, body, request)
+    if err then
+      return
+    end
 
-		local variables = session_variables(session)
-		if not variables then
-			return
-		end
+    if not root_ports[session.adapter.port] then
+      return
+    end
 
-		local key = body.variablesReference
-		local value = body.value
+    for _, bp in ipairs(body.breakpoints) do
+      bp.verified = true
+    end
+  end
 
-		if not key or not value then
-			return
-		end
-		variables[key] = { value = value, evaluateName = request.expression, name = request.name }
-	end
+  register_listener('before', 'setBreakpoints', plugin_id, function (session, info, err, body, request)
+    if err then
+      return
+    end
 
-	dap.listeners.before["setVariable"][plugin_id] = set_variable_listener
-	dap.listeners.before["setExpression"][plugin_id] = set_variable_listener
+    local pid_bps = get_breakpoints(info.pid)
 
-	dap.listeners.before["variables"][plugin_id] = function(session, err, body, request)
-		if err then
-			return
-		end
+    for _, bp in ipairs(body.breakpoints) do
+      bp.verified = true
 
-		local variables = session_variables(session)
+      local unique = true
 
-		if not variables or not variables[session] then
-			return
-		end
+      for _, xbp in ipairs(pid_bps) do
+        if xbp.id == bp.id then
+          unique = false
+        end
+      end
 
-		for _, var in ipairs(body.variables) do
-			local info = variables[session][var.variablesReference]
+      if unique then
+        table.insert(pid_bps, bp)
+      end
+    end
+  end)
 
-			if info and (var.evaluateName == info.evaluateName or var.name == info.name) then
-				var.value = info.value
-			end
-		end
-	end
+  register_listener('before', 'event_continued', plugin_id, function (session, info, body)
+    for _, bp in ipairs(get_breakpoints(info.pid)) do
+      if bp.__verified == false then
+        local bp_info = utils.dap_breakpoint_by_state(bp)
 
-	dap.listeners.before["setBreakpoints"][plugin_id] = function(session, err, body, request)
-		if err then
-			return
-		end
+        if bp_info then
+          dap_breakpoints.set_state(bp_info.bufnr, bp_info.line, bp)
+        end
 
-		if sessions[session] and sessions[session].is_root then
-			for _, bp in ipairs(body.breakpoints) do
-				bp.verified = true
-			end
+        if bp.message then
+          dap_utils.notify("Breakpoint rejected: " .. bp.message, vim.log.levels.ERROR)
+        end
 
-			return
-		end
+        bp.__verified = nil
+      end
+    end
+  end)
 
-		local session_bps = session_breakpoints(session)
+  register_listener('before', 'event_breakpoint', plugin_id, function (session, info, body)
+    if body.reason ~= "changed" then
+      return
+    end
 
-		if not session_bps then
-			return
-		end
+    local pid_bps = get_breakpoints(info.pid)
 
-		for i, bp in ipairs(body.breakpoints) do
-			table.insert(session_bps, bp)
+    local evt_bp = body.breakpoint
 
-			if not config.verify_timeout then
-				return
-			end
+    if not evt_bp.id then
+      return
+    end
 
-			if not bp.verified then
-				bp.verified = true
-				bp.__verified = false
-				local old_message = bp.message
-				bp.message = nil
-
-				vim.defer_fn(function()
-					if not bp.__verified then
-						bp.verified = false
-						bp.message = old_message
-
-						local bp_info = utils.dap_breakpoint_by_state(bp)
-
-						if bp_info then
-							breakpoints.set_state(bp_info.bufnr, bp_info.line, bp)
-						end
-
-						if bp.message then
-							dap_utils.notify("Breakpoint rejected: " .. bp.message, vim.log.levels.ERROR)
-						end
-					end
-				end, config.verify_timeout)
-			end
-		end
-	end
-
-	dap.listeners.after["event_breakpoint"][plugin_id] = function(session, body)
-		if body.reason ~= "changed" then
-			return
-		end
-
-		local bp = body.breakpoint
-
-		if bp.id then
-			for _, xbp in ipairs(session_breakpoints(session) or {}) do
-				if xbp.id == bp.id then
-					xbp.__verified = bp.verified
-					xbp.verified = bp.verified
-				end
-			end
-		end
-	end
-
-	dap.listeners.after["event_terminated"][plugin_id] = function(session)
-		local proc = session_proc(session)
-
-		if not proc then
-			return
-		end
-
-		if session_is_main(session) then
-			proc.exit()
-		end
-
-		M.unregister_session(session)
-	end
-
-	dap.listeners.after["event_exited"][plugin_id] = function(session)
-		M.unregister_session(session)
-	end
-
-	for _, command in ipairs({
-		"next",
-		"continue",
-		"restart",
-		"launch",
-		"restartFrame",
-		"stepBack",
-		"stepIn",
-		"stepOut",
-	}) do
-		dap.listeners.before[command][plugin_id] = function(session, _, body, request)
-			clear_session_variables(session)
-		end
-	end
+    for _, pid_bp in ipairs(pid_bps) do
+      if pid_bp.id == evt_bp.id then
+        pid_bp.verified = evt_bp.verified
+        pid_bp.__verified = evt_bp.verified
+      end
+    end
+  end)
 end
 
 return M
