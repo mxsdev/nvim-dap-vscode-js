@@ -1,0 +1,142 @@
+# nvim-dap-vscode-js
+
+[nvim-dap](https://github.com/mfussenegger/nvim-dap) adapter for [vscode-js-debug](https://github.com/microsoft/vscode-js-debug). 
+
+## Adapters
+
+Every platform supported by vscode is provided. This includes:
+
+| Adapter             | Platform          | Support     |
+|---------------------|-------------------|-------------|
+| `pwa-node`          | Node.js           | Full        |
+| `pwa-chrome`        | Chrome            | Partial[^1] |
+| `pwa-msedge`        | Edge              | Untested    |
+| `node-terminal`     | Node.js           | Untested    |
+| `pwa-extensionHost` | VSCode Extensions | Untested    |
+
+## Installation
+
+### Plugin
+
+Supports packer, vim-plug, etc. With packer, for example:
+
+```lua
+use { "mxsdev/nvim-dap-vscode-js", requires = {"mfussenegger/nvim-dap"} }
+```
+
+### Debugger
+
+You must download and build a copy of [vscode-js-debug](https://github.com/microsoft/vscode-js-debug) in order to use this plugin. 
+
+#### With Packer
+
+```lua
+use {
+  "microsoft/vscode-js-debug",
+  opt = true,
+  run = "npm install --legacy-peer-deps && npm run compile" 
+}
+```
+
+#### Manually
+
+```bash
+git clone https://github.com/microsoft/vscode-js-debug
+cd vscode-js-debug
+npm install --legacy-peer-deps
+npm run compile
+```
+
+## Setup
+
+```lua
+require("nvim-dap-vscode-js").setup({
+  -- node_path = "node", -- Path of node executable. Defaults to $NODE_PATH, and then "node"
+  -- debugger_path = "(runtimedir)/site/pack/packer/opt/vscode-js-debug", -- Path to vscode-js-debug installation. 
+  adapters = { 'pwa-node', 'pwa-chrome', 'pwa-msedge', 'node-terminal', 'pwa-extensionHost' }, -- which adapters to register in nvim-dap
+})
+
+for _, language in ipairs({ "typescript", "javascript" }) do
+  require("dap").configurations[language] = {
+    ... -- see below
+  }
+end
+```
+
+Note that if vscode-js-debug was installed without packer, its root folder location must be set manually in `debugger_path`.
+
+### Configurations
+
+See [here](https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md) for all custom configuration options.
+
+#### Node.js
+
+```lua
+{
+  {
+    type = "pwa-node",
+    request = "launch",
+    name = "Launch file",
+    program = "${file}",
+    cwd = "${workspaceFolder}",
+  },
+  {
+    type = "pwa-node",
+    request = "attach",
+    name = "Attach",
+    processId = require'dap.utils'.pick_process,
+    cwd = "${workspaceFolder}",
+  }
+}
+```
+
+#### Jest[^2]
+
+```lua
+{
+  {
+    type = "pwa-node",
+    request = "launch",
+    name = "Debug Jest Tests",
+    -- trace = true, -- include debugger info
+    runtimeExecutable = "node",
+    runtimeArgs = {
+      "./node_modules/jest/bin/jest.js",
+      "--runInBand",
+    },
+    rootPath = "${workspaceFolder}",
+    cwd = "${workspaceFolder}",
+    console = "integratedTerminal",
+    internalConsoleOptions = "neverOpen",
+  }
+}
+```
+
+#### Mocha
+
+```lua
+{
+  {
+    type = "pwa-node",
+    request = "launch",
+    name = "Debug Mocha Tests",
+    -- trace = true, -- include debugger info
+    runtimeExecutable = "node",
+    runtimeArgs = {
+      "./node_modules/mocha/bin/mocha.js",
+    },
+    rootPath = "${workspaceFolder}",
+    cwd = "${workspaceFolder}",
+    console = "integratedTerminal",
+    internalConsoleOptions = "neverOpen",
+  }
+}
+```
+
+## Planned Features
+
+ - [ ] Integration with [neotest-jest](https://github.com/haydenmeade/neotest-jest)
+ - [ ] Support for switching between child sessions
+
+[^1]: The debugger runs and attaches, however breakpoints may be rejected.
+[^2]: See [here](https://github.com/microsoft/vscode-js-debug/issues/214#issuecomment-572686921) for more details on running jest
