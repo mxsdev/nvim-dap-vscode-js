@@ -7,7 +7,7 @@
         "releaseRules": [
           {"type": "docs", "scope":"readme", "release": "patch"},
           {"type": "docs", "scope":"nvim", "release": "patch"},
-        ],
+        ]
       }
     ],
     "@semantic-release/release-notes-generator",
