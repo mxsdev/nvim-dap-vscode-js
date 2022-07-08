@@ -138,5 +138,9 @@ See [here](https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md) fo
  - [ ] Integration with [neotest-jest](https://github.com/haydenmeade/neotest-jest)
  - [ ] Support for switching between child sessions
 
+## Credits
+
+I would like to say a huge thank you to [Jens Claes](https://github.com/entropitor), whose dotfiles this plugin is based off of, and to all members who contributed to [this issue](https://github.com/microsoft/vscode-js-debug/issues/902) - the insight gained from this was paramount to the success of this project.
+
 [^1]: The debugger runs and attaches, however breakpoints may be rejected.
 [^2]: See [here](https://github.com/microsoft/vscode-js-debug/issues/214#issuecomment-572686921) for more details on running jest
