@@ -5,11 +5,14 @@ local dap_bps = require("dap.breakpoints")
 local dapjs = require("dap-vscode-js")
 local dapjs_utils = require("dap-vscode-js.utils")
 local js_session = require("dap-vscode-js.session")
+local logger = require("dap-vscode-js.log")
 
 local dap_ns = "dap_breakpoints"
 
 M.id = "___dap_js_test"
 local util_id = "___dap_js_test_utils"
+
+local enable_logging = vim.env["DAP_JS_ENABLE_LOGGING"] == "true"
 
 -- local current_session
 local current_sessions = {}
@@ -32,7 +35,7 @@ end
 
 function M.reset()
 	M.clear_listeners()
-	M.clear_config()
+	-- M.clear_config()
 	M.clear_breakpoints()
 	current_sessions = {}
 end
@@ -66,8 +69,16 @@ function M.on_session_end(callback)
 end
 
 function M.setup_dapjs(config)
+	local info = debug.getinfo(2, "Sl")
+	local lineinfo = info.short_src
+
+	logger.msg_prefix = string.format("(%s) ", lineinfo)
+
 	dapjs.setup(vim.tbl_extend("force", {
 		debugger_path = DEBUGGER_PATH,
+		log_file_path = LOG_PATH,
+		log_file_level = (enable_logging and vim.log.levels.TRACE) or false,
+		log_console_level = false,
 	}, config or {}))
 
 	dap.listeners.before["event_initialized"][util_id] = function(session)
@@ -111,6 +122,39 @@ function M.get_terminal_remote(on_update)
 			vim.api.nvim_buf_delete(term_buf, { force = true })
 		end)
 	end
+end
+
+-- see if the file exists
+local function file_exists(file)
+	local f = io.open(file, "rb")
+	if f then
+		f:close()
+	end
+	return f ~= nil
+end
+
+-- get all lines from a file, returns an empty
+-- list/table if the file does not exist
+function M.lines_from(file)
+	if not file_exists(file) then
+		return {}
+	end
+	local lines = {}
+	for line in io.lines(file) do
+		lines[#lines + 1] = line
+	end
+	return lines
+end
+
+function M.read_log(from_test_only)
+	from_test_only = from_test_only or true
+
+	local info = debug.getinfo(2, "Sl")
+	local lineinfo = info.short_src
+
+	return vim.tbl_filter(function(el)
+		return (from_test_only and string.find(el, lineinfo)) or true
+	end, M.lines_from(LOG_PATH))
 end
 
 return M

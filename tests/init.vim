@@ -10,3 +10,4 @@ set rtp+=./tests
 
 runtime! plugin/plenary.vim
 lua DEBUGGER_PATH="./lib/vscode-js-debug"
+lua LOG_PATH="./lib/dap-vscode-js.log"

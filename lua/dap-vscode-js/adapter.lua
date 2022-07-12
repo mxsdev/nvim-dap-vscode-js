@@ -14,6 +14,15 @@ local function adapter_config(port, mode, proc, start_child)
 		id = mode,
 		reverse_request_handlers = {
 			attachedChildSession = function(parent, request)
+				logger.debug(
+					string.format(
+						"Got attachedChildSession request from port %d to start port %s",
+						parent.adapter.port,
+						request.arguments.config.__jsDebugChildServer
+					)
+				)
+				logger.trace("attachedChildSession request, port " .. tostring(port) .. ": " .. vim.inspect(request))
+
 				start_child(request, mode, parent, proc)
 			end,
 		},
@@ -32,6 +41,8 @@ local function start_child_session(request, mode, parent, proc)
 			if err then
 				logger.log("DAP connection failed to start: " .. err, vim.log.levels.ERROR)
 			else
+				logger.debug("Initializing child session on port " .. tostring(child_port))
+
 				session:initialize(body.config)
 
 				js_session.register_session(session, parent, proc)
@@ -47,16 +58,18 @@ function M.generate_adapter(mode, config)
 		local proc
 
 		proc = utils.start_debugger(config, function(port, proc)
+			logger.debug("Debugger process started on port " .. port)
+
 			js_session.register_port(port)
 			callback(adapter_config(port, mode, proc, start_child_session))
 		end, function(code, signal)
 			if code and code ~= 0 then
-				logger.log("JS Debugger exited with code " .. code .. "!", vim.log.levels.ERROR)
+				logger.error("JS Debugger exited with code " .. code .. "!")
 			end
 		end, function(err)
-			logger.log("Error trying to launch JS debugger: " .. err, vim.log.levels.ERROR)
+			logger.error("Error trying to launch JS debugger: " .. err)
 		end, function(chunk)
-			logger.log("JS Debugger stderr: " .. chunk, vim.log.levels.ERROR)
+			logger.error("JS Debugger stderr: " .. chunk)
 		end)
 	end
 end

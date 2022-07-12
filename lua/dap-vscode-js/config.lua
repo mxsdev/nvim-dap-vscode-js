@@ -3,6 +3,9 @@ local utils = require("dap-vscode-js.utils")
 local defaults = {
 	node_path = os.getenv("NODE_PATH") or "node",
 	debugger_path = utils.join_paths(utils.get_runtime_dir(), "site/pack/packer/opt/vscode-js-debug"),
+	log_file_path = utils.join_paths(utils.get_cache_dir(), "dap_vscode_js.log"),
+	log_file_level = false,
+	log_console_level = vim.log.levels.ERROR,
 }
 
 local config = vim.deepcopy(defaults)
