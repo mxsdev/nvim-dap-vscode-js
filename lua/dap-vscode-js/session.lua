@@ -3,74 +3,9 @@ local dap = require("dap")
 local dap_utils = require("dap.utils")
 local dap_bp_ns = "dap_breakpoints"
 local logger = require("dap-vscode-js.log")
+local utils = require("dap-vscode-js.utils")
 
 local M = {}
-
-M.DAP_EVENTS = {
-	"event_initialized",
-	"event_stopped",
-	"event_continued",
-	"event_exited",
-	"event_terminated",
-	"event_thread",
-	"event_output",
-	"event_breakpoint",
-	"event_module",
-	"event_process",
-	"event_capabilities",
-	"event_progressStart",
-	"event_progressUpdate",
-	"event_progressEnd",
-	"event_invalidated",
-	"event_memory",
-	-- "event_loadedSource",
-}
-
-M.DAP_COMMANDS = {
-	"cancel",
-	"runInTerminal",
-	"initialize",
-	"configurationDone",
-	"launch",
-	"attach",
-	"restart",
-	"disconnect",
-	"terminate",
-	"breakpointLocations",
-	"setBreakpoints",
-	"setFunctionBreakpoints",
-	"setExceptionBreakpoints",
-	"dataBreakpointInfo",
-	"setDataBreakpoints",
-	"setInstructionBreakpoints",
-	"continue",
-	"next",
-	"stepIn",
-	"stepOut",
-	"stepBack",
-	"reverseContinue",
-	"restartFrame",
-	"goto",
-	"pause",
-	"stackTrace",
-	"scopes",
-	"variables",
-	"setVariable",
-	"source",
-	"threads",
-	"terminateThreads",
-	"modules",
-	"loadedSources",
-	"evaluate",
-	"setExpression",
-	"stepInTargets",
-	"gotoTargets",
-	"completions",
-	"exceptionInfo",
-	"readMemory",
-	"writeMemory",
-	"disassemble",
-}
 
 local sessions = {}
 
@@ -162,7 +97,7 @@ function M.setup_hooks(plugin_id, config)
 	local evt_prefix = "event_"
 
 	-- for key, _ in pairs(dap.listeners.before) do
-	for _, key in ipairs(M.DAP_EVENTS) do
+	for _, key in ipairs(utils.DAP_EVENTS) do
 		register_listener("before", key, plugin_id .. "-log", function(session, info, body)
 			session_debug(session, "Received '" .. key .. "'")
 
@@ -171,7 +106,7 @@ function M.setup_hooks(plugin_id, config)
 		end)
 	end
 
-	for _, key in ipairs(M.DAP_COMMANDS) do
+	for _, key in ipairs(utils.DAP_COMMANDS) do
 		register_listener("before", key, plugin_id .. "-log", function(session, info, err, body, request)
 			session_debug(session, "Received '" .. key .. "'")
 
