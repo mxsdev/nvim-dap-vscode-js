@@ -83,9 +83,9 @@ local function get_breakpoints(pid)
 	return breakpoints[pid]
 end
 
-local function register_listener(time, key, plugin_id, func)
+local function register_listener(time, key, plugin_id, func, include_root)
 	dap.listeners[time][key][plugin_id] = function(session, ...)
-		if not sessions[session] then
+		if not sessions[session] and not (include_root and root_ports[session.adapter.port]) then
 			return
 		end
 
@@ -103,7 +103,7 @@ function M.setup_hooks(plugin_id, config)
 
 			-- session_trace(session, key .. " info: " .. vim.inspect(info))
 			session_trace(session, key .. " body: " .. vim.inspect(body))
-		end)
+		end, true)
 	end
 
 	for _, key in ipairs(utils.DAP_COMMANDS) do
@@ -117,7 +117,7 @@ function M.setup_hooks(plugin_id, config)
 				session_trace(session, key .. " body: " .. vim.inspect(body))
 				session_trace(session, key .. " request: " .. vim.inspect(request))
 			end
-		end)
+		end, true)
 	end
 
 	for _, evt in ipairs({ "event_terminated", "event_exited" }) do
@@ -132,13 +132,13 @@ function M.setup_hooks(plugin_id, config)
 			return
 		end
 
-		session_debug(session, "Received setBreakpoints response on root port")
-		session_trace(session, "setBreakpoints body: " .. vim.inspect(body))
-		session_trace(session, "setBreakpoints request: " .. vim.inspect(request))
-
 		if not root_ports[session.adapter.port] then
 			return
 		end
+
+		session_debug(session, "Received setBreakpoints response on root port")
+		-- session_trace(session, "setBreakpoints body: " .. vim.inspect(body))
+		-- session_trace(session, "setBreakpoints request: " .. vim.inspect(request))
 
 		for _, bp in ipairs(body.breakpoints) do
 			bp.verified = true

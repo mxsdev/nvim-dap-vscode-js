@@ -8,6 +8,7 @@ local js_session = require("dap-vscode-js.session")
 local logger = require("dap-vscode-js.log")
 
 local dap_ns = "dap_breakpoints"
+local dap_pos_ns = "dap_pos"
 
 M.id = "___dap_js_test"
 local util_id = "___dap_js_test_utils"
@@ -96,6 +97,10 @@ end
 
 function M.get_breakpoint_signs(bufexpr)
 	return vim.fn.sign_getplaced(bufexpr, { group = dap_ns })
+end
+
+function M.get_pos_breakpoint_signs(bufexpr)
+	return vim.fn.sign_getplaced(bufexpr, { group = dap_pos_ns })
 end
 
 function M.get_terminal_remote(on_update)
