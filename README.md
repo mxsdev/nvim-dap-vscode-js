@@ -112,6 +112,8 @@ See [here](https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md) fo
 }
 ```
 
+You may also want to check out [neotest-jest](https://github.com/haydenmeade/neotest-jest), which supports this plugin out of the box.
+
 #### Mocha
 
 ```lua
