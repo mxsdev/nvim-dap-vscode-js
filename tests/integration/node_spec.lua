@@ -71,8 +71,8 @@ describe("pwa-node", function()
 
 				test_utils.set_breakpoint(3, bufexpr)
 
-				test_utils.add_listener("after", "event_stopped", function(session, body)
-					assert.equal(body.reason, "breakpoint")
+				test_utils.add_listener("after", "event_breakpoint", function(session, body)
+          assert.equal(body.reason, "changed")
 
 					local bps = breakpoints.get(bufexpr)[bufexpr]
 

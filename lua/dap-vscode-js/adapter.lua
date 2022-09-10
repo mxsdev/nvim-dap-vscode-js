@@ -5,6 +5,7 @@ local utils = require("dap-vscode-js.utils")
 local logger = require("dap-vscode-js.log")
 local dapjs_config = require("dap-vscode-js.config")
 local dap = require("dap")
+local dap_breakpoints = require("dap.breakpoints")
 
 local function adapter_config(port, mode, proc, start_child)
 	return {
@@ -47,6 +48,18 @@ function M.generate_adapter(mode, config)
 		local proc
 
 		proc = utils.start_debugger(config, function(port, proc)
+
+      vim.schedule(function ()
+        print('rejecting all signs...')
+        for _, signs in ipairs(dap_breakpoints.get_breakpoint_signs()) do
+          local bufnr = signs.bufnr
+          for _, sign in ipairs(signs.signs) do
+            dap_breakpoints.set_state(bufnr, sign.lnum, { verified = false })
+            -- dap_breakpoints.update()
+          end
+        end
+      end)
+
 			js_session.register_port(port)
 			callback(adapter_config(port, mode, proc, start_child_session))
 		end, function(code, signal)

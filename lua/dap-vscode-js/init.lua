@@ -4,6 +4,7 @@
 ---@field node_path string: Path of node executable. Defaults to $NODE_PATH, and then "node"
 ---@field debugger_path string: Path to vscode-js-debug. Defaults to (runtimedir)/site/pack/packer/opt/vscode-js-debug
 ---@field adapters string[]: List of adapters to configure. Options are 'pwa-node', 'pwa-chrome', 'pwa-msedge', 'node-terminal', 'pwa-extensionHost'. Defaults to all. See https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md for configuration options.
+---@field defer_verification boolean: Whether or not to force breakpoint verification to happen by the first continued event. This prevents breakpoints from flashing as rejected momentarily before being corrected, but may have some edge cases. Defaults to false.
 
 local config = require("dap-vscode-js.config")
 local js_session = require("dap-vscode-js.session")
