@@ -13,7 +13,8 @@ local js_dap = require("dap-vscode-js.dap")
 local dapjs = {}
 
 ---Setup adapter and/or configs
----@param settings string
+---@param settings Settings
+---@param force boolean?
 function dapjs.setup(settings, force)
 	config.__set_config(settings, force or true)
 	js_session.setup_hooks("dap-vscode-js", config)
