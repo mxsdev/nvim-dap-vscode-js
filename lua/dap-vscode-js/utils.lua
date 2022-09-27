@@ -49,6 +49,19 @@ local function debugger_entrypoint(debugger_path)
 	return M.join_paths(debugger_path, "out/src/vsDebugServer.js")
 end
 
+---@param config Settings
+local function get_spawn_cmd(config)
+	if config.debugger_cmd then
+		return assert(config.debugger_cmd[1], "debugger_cmd is empty"), { unpack(config.debugger_cmd, 2) }
+	end
+	local entrypoint = debugger_entrypoint(config.debugger_path)
+
+	if not file_exists(entrypoint) then
+		error("Debugger entrypoint file '" .. entrypoint .. "' does not exist. Did it build properly?")
+	end
+	return config.node_path, { entrypoint }
+end
+
 function M.start_debugger(config, on_launch, on_exit, on_error, on_stderror)
 	on_launch = schedule_wrap_safe(on_launch)
 	on_exit = schedule_wrap_safe(on_exit)
@@ -60,13 +73,6 @@ function M.start_debugger(config, on_launch, on_exit, on_error, on_stderror)
 	local stderr = uv.new_pipe(false)
 	local handle, pid_or_err
 
-	local entrypoint = debugger_entrypoint(config.debugger_path)
-
-	if not file_exists(entrypoint) then
-		on_error("Debugger entrypoint file '" .. entrypoint .. "' does not exist. Did it build properly?")
-		return
-	end
-
 	local exit = function(code, signal)
 		stdin:close()
 		stdout:close()
@@ -77,10 +83,14 @@ function M.start_debugger(config, on_launch, on_exit, on_error, on_stderror)
 		on_exit(code, signal)
 	end
 
-	handle, pid_or_err = uv.spawn(config.node_path, {
-		args = {
-			entrypoint,
-		},
+	local ok, cmd, args = pcall(get_spawn_cmd, config)
+	if not ok then
+		on_error(cmd)
+		return
+	end
+
+	handle, pid_or_err = uv.spawn(cmd, {
+		args = args,
 		stdio = { stdin, stdout, stderr },
 		detached = true,
 	}, function(code, signal)
@@ -115,4 +125,5 @@ function M.start_debugger(config, on_launch, on_exit, on_error, on_stderror)
 	return proc
 end
 
+M.get_spawn_cmd = get_spawn_cmd
 return M

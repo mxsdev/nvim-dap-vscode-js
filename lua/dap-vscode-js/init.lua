@@ -3,6 +3,7 @@
 ---@class Settings @Plugin configuration options
 ---@field node_path string: Path of node executable. Defaults to $NODE_PATH, and then "node"
 ---@field debugger_path string: Path to vscode-js-debug. Defaults to (runtimedir)/site/pack/packer/opt/vscode-js-debug
+---@field debugger_cmd string[]?: The command to use to launch the debug server. This option takes precedence over both `node_path` and `debugger_path`.
 ---@field adapters string[]: List of adapters to configure. Options are 'pwa-node', 'pwa-chrome', 'pwa-msedge', 'node-terminal', 'pwa-extensionHost'. Defaults to all. See https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md for configuration options.
 
 local config = require("dap-vscode-js.config")
