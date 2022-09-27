@@ -125,4 +125,5 @@ function M.start_debugger(config, on_launch, on_exit, on_error, on_stderror)
 	return proc
 end
 
+M.get_spawn_cmd = get_spawn_cmd
 return M
