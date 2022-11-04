@@ -8,11 +8,15 @@ Every platform supported by vscode is provided. This includes:
 
 | Adapter             | Platform          | Support     |
 |---------------------|-------------------|-------------|
-| `pwa-node`          | Node.js           | Full        |
+| `node`              | Node.js           | Full        |
+| *`pwa-node`         | Node.js           | Full        |
 | `pwa-chrome`        | Chrome            | Partial[^1] |
 | `pwa-msedge`        | Edge              | Untested    |
 | `node-terminal`     | Node.js           | Untested    |
 | `pwa-extensionHost` | VSCode Extensions | Untested    |
+
+> *As of July 2022, pwa-node is not in preview anymore and is the default node debugger (aka `node` adapter above). 
+> Please use the `node` debugger instead as `pwa-node` is scheduled for deprecation.
 
 ## Installation
 
