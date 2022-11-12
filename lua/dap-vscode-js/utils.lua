@@ -13,6 +13,10 @@ function M.get_runtime_dir()
 	return lvim_runtime_dir
 end
 
+function M.get_cache_dir()
+	return vim.call("stdpath", "cache")
+end
+
 function M.join_paths(...)
 	local result = table.concat({ ... }, path_sep)
 	return result
