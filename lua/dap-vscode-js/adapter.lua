@@ -42,9 +42,11 @@ local function start_child_session(request, mode, parent, proc)
 				logger.log("DAP connection failed to start: " .. err, vim.log.levels.ERROR)
 			else
 				logger.debug("Initializing child session on port " .. tostring(child_port))
-
+				if parent.children then
+					session.parent = parent
+					parent.children[session.id] = session
+				end
 				session:initialize(body.config)
-
 				js_session.register_session(session, parent, proc)
 			end
 		end
