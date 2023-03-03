@@ -1,6 +1,6 @@
 local M = {}
 local dap = require("dap")
-local js_adapter = require("dap-vscode-js.adapter")
+-- local js_adapter = require("dap-vscode-js.adapter")
 
 local DAP_TYPES = { "pwa-node", "pwa-chrome", "pwa-msedge", "node-terminal", "pwa-extensionHost" }
 
@@ -10,11 +10,11 @@ local function filter_adapters(list)
 	end, list)
 end
 
-function M.attach_adapters(config)
+function M.attach_adapters(config, generate_adapter)
 	local adapter_list = filter_adapters(config.adapters or DAP_TYPES)
 
 	for _, adapter in ipairs(adapter_list) do
-		dap.adapters[adapter] = js_adapter.generate_adapter(adapter, config)
+		dap.adapters[adapter] = generate_adapter(adapter, config)
 	end
 end
 

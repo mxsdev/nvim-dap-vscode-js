@@ -7,6 +7,7 @@ local defaults = {
 	log_file_path = utils.join_paths(utils.get_cache_dir(), "dap_vscode_js.log"),
 	log_file_level = false,
 	log_console_level = vim.log.levels.WARN,
+  legacy_session_manager = false,
 }
 
 local config = vim.deepcopy(defaults)

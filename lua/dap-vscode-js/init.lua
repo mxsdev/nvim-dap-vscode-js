@@ -8,11 +8,13 @@
 ---@field log_file_path string: Log file path. Defaults to (stdpath cache)/dap_vscode_js.log
 ---@field log_file_level number: Logging level for output to file. Set to false to disable file logging. Default is false.
 ---@field log_console_level number: Logging level for output to console. Set to false to disable console output. Default is vim.log.levels.ERROR.
+---@field legacy_session_manager boolean: Use old custom session manager for dealing with child/parent sessions.
 
 local config = require("dap-vscode-js.config")
-local js_session = require("dap-vscode-js.session")
-local js_dap = require("dap-vscode-js.dap")
 local logger = require("dap-vscode-js.log")
+local legacy = require("dap-vscode-js.legacy")
+local js_dap = require("dap-vscode-js.dap")
+local js_adapter = require("dap-vscode-js.adapter")
 
 local dapjs = {}
 
@@ -21,8 +23,13 @@ local dapjs = {}
 ---@param force boolean?
 function dapjs.setup(settings, force)
 	config.__set_config(settings, force or true)
-	js_session.setup_hooks("dap-vscode-js", config)
-	js_dap.attach_adapters(config)
+
+  if legacy.use_legacy(config) then
+    legacy.setup(config)
+  else
+    -- use new adapter
+    js_dap.attach_adapters(config, js_adapter.generate_adapter)
+  end
 
 	logger.debug("Plugin initialized!")
 end
