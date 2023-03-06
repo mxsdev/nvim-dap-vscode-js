@@ -2,7 +2,7 @@ local M = {}
 local dap = require("dap")
 local js_adapter = require("dap-vscode-js.adapter")
 
-local DAP_TYPES = { "pwa-node", "pwa-chrome", "pwa-msedge", "node-terminal", "pwa-extensionHost" }
+local DAP_TYPES = { "node", "pwa-node", "pwa-chrome", "pwa-msedge", "node-terminal", "pwa-extensionHost" }
 
 local function filter_adapters(list)
 	return vim.tbl_filter(function(el)
