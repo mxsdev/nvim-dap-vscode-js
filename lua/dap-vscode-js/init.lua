@@ -2,13 +2,16 @@
 
 ---@class Settings @Plugin configuration options
 ---@field node_path string: Path of node executable. Defaults to $NODE_PATH, and then "node"
----@field debugger_path string: Path to vscode-js-debug. Defaults to (runtimedir)/site/pack/packer/opt/vscode-js-debug
----@field debugger_cmd string[]: The command to use to launch the debug server. This option takes precedence over both `node_path` and `debugger_path`.
+---@field debugger_executable string: Path to debugger executable (dapDebugServer.js). Defaults to (runtimedir)/site/pack/packer/opt/vscode-js-debug/dist/src/dapDebugServer.js
+---@field debugger_args string[]: Arguments to pass to debugger command. Defaults to {}
+---@field adapter_executable_config table: Overrides adapter debugger executable configuration - see nvim-dap for more info
 ---@field adapters string[]: List of adapters to configure. Options are 'pwa-node', 'pwa-chrome', 'pwa-msedge', 'node-terminal', 'pwa-extensionHost'. Defaults to all. See https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md for configuration options.
 ---@field log_file_path string: Log file path. Defaults to (stdpath cache)/dap_vscode_js.log
 ---@field log_file_level number: Logging level for output to file. Set to false to disable file logging. Default is false.
 ---@field log_console_level number: Logging level for output to console. Set to false to disable console output. Default is vim.log.levels.ERROR.
----@field legacy_flat_debugger boolean: Use legacy flat debugger, and use legacy custom session manager for dealing with child/parent sessions.
+---@field legacy_flat_debugger boolean: Use legacy flat debugger, and use legacy custom session manager for dealing with child/parent sessions. This is not maintained anymore. 
+---@field debugger_path string: (LEGACY) Path to vscode-js-debug. Defaults to (runtimedir)/site/pack/packer/opt/vscode-js-debug
+---@field debugger_cmd string[]: (LEGACY) The command to use to launch the debug server. This option takes precedence over both `node_path` and `debugger_path`.
 
 local config = require("dap-vscode-js.config")
 local logger = require("dap-vscode-js.log")
