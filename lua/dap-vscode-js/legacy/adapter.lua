@@ -1,6 +1,6 @@
 local M = {}
 local uv = vim.loop
-local js_session = require("dap-vscode-js.session")
+local js_session = require("dap-vscode-js.legacy.session")
 local utils = require("dap-vscode-js.utils")
 local logger = require("dap-vscode-js.log")
 local dapjs_config = require("dap-vscode-js.config")

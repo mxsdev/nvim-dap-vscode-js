@@ -1,11 +1,7 @@
-local breakpoints = require("dap.breakpoints")
 local async = require("plenary.async.tests")
 local wrap = require("plenary.async.async").wrap
-local dapjs = require("dap-vscode-js")
-local js_session = require("dap-vscode-js.session")
 local dap = require("dap")
 local test_utils = require("__dap_js_test_util")
-local config = require("dap-vscode-js.config")
 
 local workDir = test_utils.test_file("jest")
 
@@ -59,7 +55,7 @@ describe("pwa-node jest", function()
 
 				test_utils.open_test("jest/integration.test.ts")
 
-				test_utils.on_session_end(function()
+        test_utils.add_listener("before", "event_terminated", function ()
 					terminated = true
 
 					try_exit()

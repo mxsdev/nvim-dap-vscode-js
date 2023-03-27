@@ -21,7 +21,7 @@ export DAP_JS_ENABLE_LOGGING=$LOG
 
 shift $(($OPTIND - 1))
 
-rm "./lib/dap-vscode-js.log"
+rm -f "./lib/dap-vscode-js.log"
 
 tempfile=".test_output.tmp"
 

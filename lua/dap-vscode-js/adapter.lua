@@ -1,76 +1,51 @@
 local M = {}
 local utils = require("dap-vscode-js.utils")
-local logger = require("dap-vscode-js.log")
+-- local logger = require("dap-vscode-js.log")
 local dapjs_config = require("dap-vscode-js.config")
 
-local function adapter_config(port, mode, proc)
-	return {
-		type = "server",
-		host = "127.0.0.1",
-		port = port,
-		id = mode,
-		-- reverse_request_handlers = {
-		-- 	attachedChildSession = function(parent, request)
-		-- 		logger.debug(
-		-- 			string.format(
-		-- 				"Got attachedChildSession request from port %d to start port %s",
-		-- 				parent.adapter.port,
-		-- 				request.arguments.config.__jsDebugChildServer
-		-- 			)
-		-- 		)
-		-- 		logger.trace("attachedChildSession request, port " .. tostring(port) .. ": " .. vim.inspect(request))
-		--
-		-- 		start_child(request, mode, parent, proc)
-		-- 	end,
-		-- },
-	}
-end
+function M.generate_adapter(_, user_config)
+	user_config = user_config or dapjs_config
 
--- local function start_child_session(request, mode, parent, proc)
--- 	local body = request.arguments
--- 	local session = nil
--- 	local child_port = tonumber(body.config.__jsDebugChildServer)
---
--- 	session = require("dap.session"):connect(
--- 		adapter_config(child_port, mode, proc, start_child_session),
--- 		{},
--- 		function(err)
--- 			if err then
--- 				logger.log("DAP connection failed to start: " .. err, vim.log.levels.ERROR)
--- 			else
--- 				logger.debug("Initializing child session on port " .. tostring(child_port))
--- 				if parent.children then
--- 					session.parent = parent
--- 					parent.children[session.id] = session
--- 				end
--- 				session:initialize(body.config)
--- 				js_session.register_session(session, parent, proc)
--- 			end
--- 		end
--- 	)
--- end
+	return function(on_config, config, parent)
+    local target = config["__pendingTargetId"]
+    if target and parent then
+      local adapter = parent.adapter
+      on_config({
+        type = "server",
+        host = "localhost",
+        port = adapter.port
+      })
+    else
+      local debug_executable = user_config.adapter_executable_config
 
-function M.generate_adapter(mode, config)
-	config = config or dapjs_config
+      if not debug_executable then
+        local debugger_path = user_config.debugger_executable
 
-	return function(callback)
-		local proc
+        if not utils.file_exists(debugger_path) then
+          -- TODO: show user to README.md with directions 
+          error("Debugger entrypoint file '" .. debugger_path .. "' does not exist. Did it build properly?")
+        end
 
-		proc = utils.start_debugger(config, function(port, proc)
-			logger.debug("Debugger process started on port " .. port)
-			
-			-- js_session.register_port(port)
-			callback(adapter_config(port, mode, proc))
-		end, function(code, signal)
-			if code and code ~= 0 then
-				logger.error("JS Debugger exited with code " .. code .. "!")
-			end
-		end, function(err)
-			logger.error("Error trying to launch JS debugger: " .. err)
-		end, function(chunk)
-			logger.error("JS Debugger stderr: " .. chunk)
-		end)
-	end
+        local debugger_cmd_args = { debugger_path, "${port}" }
+
+        for _, arg in ipairs(user_config.debugger_args or {}) do
+          table.insert(debugger_cmd_args, arg)
+        end
+
+        debug_executable = {
+          command = user_config.node_path,
+          args = debugger_cmd_args,
+        }
+      end
+
+      on_config({
+        type = "server",
+        host = "localhost",
+        port = "${port}",
+        executable = debug_executable
+      })
+    end
+  end
 end
 
 return M

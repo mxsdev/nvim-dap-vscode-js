@@ -8,7 +8,7 @@
 ---@field log_file_path string: Log file path. Defaults to (stdpath cache)/dap_vscode_js.log
 ---@field log_file_level number: Logging level for output to file. Set to false to disable file logging. Default is false.
 ---@field log_console_level number: Logging level for output to console. Set to false to disable console output. Default is vim.log.levels.ERROR.
----@field legacy_session_manager boolean: Use old custom session manager for dealing with child/parent sessions.
+---@field legacy_flat_debugger boolean: Use legacy flat debugger, and use legacy custom session manager for dealing with child/parent sessions.
 
 local config = require("dap-vscode-js.config")
 local logger = require("dap-vscode-js.log")

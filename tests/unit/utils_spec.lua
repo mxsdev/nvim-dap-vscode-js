@@ -5,26 +5,6 @@ local config = require("dap-vscode-js.config")
 local test_utils = require("__dap_js_test_util")
 
 describe("dap-vscode-js.utils", function()
-	describe(".start_debugger", function()
-		async.it(
-			"can start successfully",
-			wrap(function(done)
-				utils.start_debugger({
-					debugger_path = DEBUGGER_PATH,
-					node_path = "node",
-				}, function()
-					done()
-				end, function(code, signal)
-					assert.falsy(code)
-				end, function(err)
-					assert.falsy(err)
-				end, function(err)
-					error(err)
-				end)
-			end, 1)
-		)
-	end)
-
 	describe(".get_spawn_cmd", function()
 		it("will use debug_cmd when provided", function()
 			test_utils.setup_dapjs({

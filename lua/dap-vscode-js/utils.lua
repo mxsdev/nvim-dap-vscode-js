@@ -39,7 +39,7 @@ local function schedule_wrap_safe(func)
 	return (func and vim.schedule_wrap(func)) or function(...) end
 end
 
-local function file_exists(name)
+function M.file_exists(name)
 	local f = io.open(name, "r")
 	if f ~= nil then
 		io.close(f)
@@ -60,7 +60,7 @@ local function get_spawn_cmd(config)
 	end
 	local entrypoint = debugger_entrypoint(config.debugger_path)
 
-	if not file_exists(entrypoint) then
+	if not M.file_exists(entrypoint) then
 		error("Debugger entrypoint file '" .. entrypoint .. "' does not exist. Did it build properly?")
 	end
 	return config.node_path, { entrypoint }

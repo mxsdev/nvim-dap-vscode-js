@@ -4,7 +4,6 @@ local dap = require("dap")
 local dap_bps = require("dap.breakpoints")
 local dapjs = require("dap-vscode-js")
 local dapjs_utils = require("dap-vscode-js.utils")
-local js_session = require("dap-vscode-js.session")
 local logger = require("dap-vscode-js.log")
 
 local dap_ns = "dap_breakpoints"
@@ -13,9 +12,6 @@ M.id = "___dap_js_test"
 local util_id = "___dap_js_test_utils"
 
 local enable_logging = vim.env["DAP_JS_ENABLE_LOGGING"] == "true"
-
--- local current_session
-local current_sessions = {}
 
 function M.clear_listeners()
 	for _, time in ipairs({ "before", "after" }) do
@@ -37,7 +33,6 @@ function M.reset()
 	M.clear_listeners()
 	-- M.clear_config()
 	M.clear_breakpoints()
-	current_sessions = {}
 end
 
 function M.set_breakpoint(lnum, bufnr, opts)
@@ -46,26 +41,8 @@ end
 
 function M.add_listener(time, event_or_command, callback)
 	dap.listeners[time][event_or_command][M.id] = function(session, ...)
-		if not current_sessions[session] then
-			return
-		end
-
 		callback(session, ...)
 	end
-end
-
-function M.on_session_end(callback)
-	M.add_listener("after", "event_terminated", function(session, ...)
-		current_sessions[session] = nil
-
-		local active_sessions = vim.tbl_filter(function(el)
-			return js_session.is_session_registered(el)
-		end, vim.tbl_keys(current_sessions))
-
-		if #active_sessions == 0 then
-			callback(session, ...)
-		end
-	end)
 end
 
 function M.setup_dapjs(config)
@@ -75,15 +52,11 @@ function M.setup_dapjs(config)
 	logger.msg_prefix = string.format("(%s) ", lineinfo)
 	
 	dapjs.setup(vim.tbl_extend("force", {
-		debugger_path = DEBUGGER_PATH,
+    debugger_executable = DEBUGGER_PATH,
 		log_file_path = LOG_PATH,
 		log_file_level = (enable_logging and vim.log.levels.TRACE) or false,
 		log_console_level = false,
 	}, config or {}))
-
-	dap.listeners.before["event_initialized"][util_id] = function(session)
-		current_sessions[session] = true
-	end
 end
 
 function M.test_file(file)

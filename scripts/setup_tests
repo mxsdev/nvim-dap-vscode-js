@@ -7,5 +7,5 @@ __install_lib "mfussenegger" "nvim-dap"
 __install_lib "rcarriga" "nvim-dap-ui"
 __install_lib "microsoft" "vscode-js-debug" 
 
-(cd ./lib/vscode-js-debug && yarn install && yarn run compile)
+(cd ./lib/vscode-js-debug && npm install --legacy-peer-deps && npx gulp dapDebugServer)
 (cd ./tests/js/jest && yarn install)

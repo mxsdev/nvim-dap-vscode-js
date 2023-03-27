@@ -34,7 +34,7 @@ You must download and build a copy of [vscode-js-debug](https://github.com/micro
 use {
   "microsoft/vscode-js-debug",
   opt = true,
-  run = "npm install --legacy-peer-deps && npm run compile" 
+  run = "npm install --legacy-peer-deps && npx gulp dapDebugServer"
 }
 ```
 
