@@ -5,7 +5,7 @@ local breakpoints = require("dap.breakpoints")
 local M = {}
 
 function M.get_runtime_dir()
-	local lvim_runtime_dir = os.getenv("NVIM_RUNTIME_DIR")
+	local lvim_runtime_dir = os.getenv("LUNARVIM_RUNTIME_DIR")
 	if not lvim_runtime_dir then
 		-- when nvim is used directly
 		return vim.call("stdpath", "data")
