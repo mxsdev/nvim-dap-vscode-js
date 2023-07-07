@@ -22,6 +22,15 @@ function M.join_paths(...)
 	return result
 end
 
+function M.get_debugger_path()
+	local lazy_avail, lazy_config = pcall(require, "lazy.core.config")
+	if lazy_avail then
+		return M.join_paths(lazy_config.defaults.root, "vscode-js-debug")
+	else
+		return M.join_paths(M.get_runtime_dir(), "site/pack/packer/opt/vscode-js-debug")
+	end
+end
+
 function M.dap_breakpoint_by_state(state)
 	local bps = breakpoints.get()
 

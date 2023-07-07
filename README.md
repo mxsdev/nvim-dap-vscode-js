@@ -26,7 +26,16 @@ use { "mxsdev/nvim-dap-vscode-js", requires = {"mfussenegger/nvim-dap"} }
 
 ### Debugger
 
-You must download and build a copy of [vscode-js-debug](https://github.com/microsoft/vscode-js-debug) in order to use this plugin. 
+You must download and build a copy of [vscode-js-debug](https://github.com/microsoft/vscode-js-debug) in order to use this plugin.
+
+#### With lazy.nvim
+
+```lua
+{
+  "microsoft/vscode-js-debug",
+  build = "npm install --legacy-peer-deps && npx gulp vsDebugServerBundle && mv dist out"
+}
+```
 
 #### With Packer
 
@@ -34,7 +43,7 @@ You must download and build a copy of [vscode-js-debug](https://github.com/micro
 use {
   "microsoft/vscode-js-debug",
   opt = true,
-  run = "npm install --legacy-peer-deps && npx gulp vsDebugServerBundle && mv dist out" 
+  run = "npm install --legacy-peer-deps && npx gulp vsDebugServerBundle && mv dist out"
 }
 ```
 
@@ -55,7 +64,7 @@ mv dist out
 ```lua
 require("dap-vscode-js").setup({
   -- node_path = "node", -- Path of node executable. Defaults to $NODE_PATH, and then "node"
-  -- debugger_path = "(runtimedir)/site/pack/packer/opt/vscode-js-debug", -- Path to vscode-js-debug installation.
+  -- debugger_path = Path to vscode-js-debug directory. Set manually if using custom lazy.nvim/packer path.
   -- debugger_cmd = { "js-debug-adapter" }, -- Command to use to launch the debug server. Takes precedence over `node_path` and `debugger_path`.
   adapters = { 'pwa-node', 'pwa-chrome', 'pwa-msedge', 'node-terminal', 'pwa-extensionHost' }, -- which adapters to register in nvim-dap
   -- log_file_path = "(stdpath cache)/dap_vscode_js.log" -- Path for file logging
@@ -70,7 +79,7 @@ for _, language in ipairs({ "typescript", "javascript" }) do
 end
 ```
 
-Note that if vscode-js-debug was installed without packer, its root folder location must be set manually in `debugger_path`.
+Note that if vscode-js-debug was installed without lazy.nvim/packer, its root folder location must be set manually in `debugger_path`.
 
 ### Configurations
 
