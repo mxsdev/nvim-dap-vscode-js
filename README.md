@@ -34,7 +34,7 @@ You must download and build a copy of [vscode-js-debug](https://github.com/micro
 use {
   "microsoft/vscode-js-debug",
   opt = true,
-  run = "npm install --legacy-peer-deps && npx gulp vsDebugServerBundle && rm -rf out && mv dist out" 
+  run = "npm install --legacy-peer-deps --no-save && npx gulp vsDebugServerBundle && rm -rf out && mv dist out" 
 }
 ```
 
@@ -43,7 +43,7 @@ use {
 ```bash
 git clone https://github.com/microsoft/vscode-js-debug
 cd vscode-js-debug
-npm install --legacy-peer-deps
+npm install --legacy-peer-deps --no-save
 npx gulp vsDebugServerBundle
 rm -rf out
 mv dist out
