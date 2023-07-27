@@ -15,7 +15,7 @@ M.log = function(msg, level, reflect_depth)
 
 	msg = M.msg_prefix .. msg
 	
-	if config.log_file_level and level >= config.log_file_level and config.log_file_path then
+	if config.log_file_level and level >= config.log_console_level and config.log_file_path then
 		local fp, err = io.open(config.log_file_path, "a")
 		if not fp then
 			print(err)
