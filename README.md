@@ -97,6 +97,20 @@ See [here](https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md) fo
 }
 ```
 
+To automatically attach to a node process using `node --inspect` you use the option below:
+
+```lua
+{
+  {
+    type = "pwa-node",
+    request = "attach",
+    name = "Auto Attach",
+    cwd = vim.fn.getcwd(),
+    protocol = "inspector",
+  }
+}
+```
+
 #### Jest[^2]
 
 ```lua
